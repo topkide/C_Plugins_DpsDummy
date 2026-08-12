@@ -2,6 +2,8 @@ package com.dotorimaru.dpsdummy.tracker;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +24,14 @@ import java.util.UUID;
  * 윈도우가 완전히 비면(무타격) 세션 종료 메시지를 띄우고 맵에서 제거한다.
  */
 public class DpsTracker {
+
+    /** DPS 구간별 색상: 50 미만 노랑/흰색, 50 이상 초록→하늘색, 100 이상 빨강→주황 그라데이션 */
+    private static final double MID_THRESHOLD = 50.0;
+    private static final double HIGH_THRESHOLD = 100.0;
+    private static final TextColor MID_FROM = NamedTextColor.GREEN;   // #55FF55
+    private static final TextColor MID_TO = NamedTextColor.AQUA;      // #55FFFF (하늘색)
+    private static final TextColor HIGH_FROM = NamedTextColor.RED;    // #FF5555
+    private static final TextColor HIGH_TO = TextColor.color(0xFFAA00); // 주황
 
     private record Hit(long time, double damage) {
     }
@@ -88,10 +98,11 @@ public class DpsTracker {
                 continue;
             }
 
-            // 윈도우 동안 무타격 → 세션 종료
+            // 윈도우 동안 무타격 → 세션 종료 (최고 DPS도 구간 색상 적용)
             if (session.hits.isEmpty()) {
-                player.sendActionBar(Component.text(
-                        "측정 종료 — 최고 DPS: %.1f".formatted(session.peak), NamedTextColor.GRAY));
+                Component result = Component.text("측정 종료 — ", NamedTextColor.GRAY)
+                        .append(colored("최고 DPS: %.1f".formatted(session.peak), session.peak, NamedTextColor.GRAY));
+                player.sendActionBar(result.decorate(TextDecoration.BOLD));
                 iterator.remove();
                 continue;
             }
@@ -101,13 +112,45 @@ public class DpsTracker {
                 session.peak = dps;
             }
 
-            Component bar = Component.text("⚔ DPS: ", NamedTextColor.YELLOW)
-                    .append(Component.text("%.1f".formatted(dps), NamedTextColor.WHITE))
+            Component bar = colored("⚔ DPS: %.1f".formatted(dps), dps, null)
                     .append(Component.text(" (%.0fs)".formatted(windowSeconds), NamedTextColor.DARK_GRAY));
             if (session.armored) {
                 bar = bar.append(Component.text(" 🛡", NamedTextColor.AQUA));
             }
-            player.sendActionBar(bar);
+            player.sendActionBar(bar.decorate(TextDecoration.BOLD));
         }
+    }
+
+    /**
+     * DPS 구간별 텍스트 색상.
+     * 50 이상: 초록→하늘색, 100 이상: 빨강→주황 그라데이션.
+     * 그 미만: fallback 색(null이면 기존 노랑 라벨 + 흰색 수치 스타일).
+     */
+    private static Component colored(String text, double dps, TextColor fallback) {
+        if (dps >= HIGH_THRESHOLD) {
+            return gradient(text, HIGH_FROM, HIGH_TO);
+        }
+        if (dps >= MID_THRESHOLD) {
+            return gradient(text, MID_FROM, MID_TO);
+        }
+        if (fallback != null) {
+            return Component.text(text, fallback);
+        }
+        int split = text.lastIndexOf(' ') + 1;
+        return Component.text(text.substring(0, split), NamedTextColor.YELLOW)
+                .append(Component.text(text.substring(split), NamedTextColor.WHITE));
+    }
+
+    /** 글자 단위 색 보간으로 그라데이션 텍스트 생성 */
+    private static Component gradient(String text, TextColor from, TextColor to) {
+        var builder = Component.text();
+        int[] codePoints = text.codePoints().toArray();
+        int last = codePoints.length - 1;
+        for (int i = 0; i <= last; i++) {
+            float t = last == 0 ? 0.0f : (float) i / last;
+            builder.append(Component.text(
+                    new String(Character.toChars(codePoints[i])), TextColor.lerp(t, from, to)));
+        }
+        return builder.build();
     }
 }

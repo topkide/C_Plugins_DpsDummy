@@ -35,9 +35,16 @@ jobs:
           name: DpsDummy
           path: build/libs/*.jar
 
+      - name: Read plugin version
+        id: version
+        run: echo "version=$(sed -n 's/^version *= *//p' gradle.properties | tr -d ' \r')" >> "$GITHUB_OUTPUT"
+
+      # 태그 푸시뿐 아니라 수동 실행(workflow_dispatch)·기본 브랜치 푸시에서도
+      # gradle.properties의 버전으로 vX.Y.Z 태그를 만들어 릴리스에 jar를 업로드한다.
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', steps.version.outputs.version) }}
           files: build/libs/*.jar
           generate_release_notes: true

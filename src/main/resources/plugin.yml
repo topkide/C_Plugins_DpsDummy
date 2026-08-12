@@ -1,0 +1,22 @@
+name: '${projectName}'
+version: '${version}'
+main: '${group}.${packageName}.${projectName}Plugin'
+api-version: '26.2'
+description: DPS 측정용 무적 갑옷 거치대 (롤링 윈도우 5초, 방어구 장착 시 방어 계산 적용)
+
+commands:
+  dps:
+    description: 현재 위치에 DPS 측정용 갑옷 거치대를 소환합니다.
+    usage: /dps
+    aliases: [디피에스]
+    permission: dpsdummy.use
+  undps:
+    description: 주변 반경 내의 DPS 측정기를 제거합니다. 장착된 장비는 바닥에 드롭됩니다.
+    usage: /undps
+    aliases: [언디피에스]
+    permission: dpsdummy.use
+
+permissions:
+  dpsdummy.use:
+    description: DPS 측정기 소환/제거 권한
+    default: true

@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+version = project.version
+
+java {
+    toolchain {
+        // Paper 26.x는 Java 25 기반
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+}
+
+repositories {
+    maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
+    mavenCentral()
+}
+
+dependencies {
+    // Paper API - 26.2 최신 빌드 자동 해석 (신규 버전 표기 체계)
+    compileOnly "io.papermc.paper:paper-api:26.2.build.+"
+
+    // Lombok (1.18.42+ 부터 JDK 25 지원)
+    compileOnly "org.projectlombok:lombok:1.18.42"
+    annotationProcessor "org.projectlombok:lombok:1.18.42"
+}
+
+ext {
+    set("projectName", project.name)
+    set("packageName", project.name.toLowerCase())
+}
+
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.processResources {
+    filesMatching("plugin.yml") {
+        expand([
+                group: project.group,
+                version: project.version,
+                projectName: project.ext.projectName,
+                packageName: project.ext.packageName,
+        ])
+    }
+}

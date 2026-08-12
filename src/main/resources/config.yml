@@ -1,0 +1,5 @@
+# DPS 롤링 윈도우 길이 (초) — 최근 N초간 넣은 데미지 합 ÷ N 이 액션바에 표시됩니다.
+window-seconds: 5
+
+# /undps 실행 시 측정기를 제거할 반경 (블록)
+remove-radius: 5.0

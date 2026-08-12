@@ -1,0 +1,6 @@
+plugins {
+    // JDK 25 자동 다운로드용 (로컬에 JDK 25가 있으면 없어도 됨)
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'DpsDummy'

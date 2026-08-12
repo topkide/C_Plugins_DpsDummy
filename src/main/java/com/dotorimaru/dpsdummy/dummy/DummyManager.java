@@ -32,7 +32,7 @@ public class DummyManager {
 
     /** 플레이어 위치에 측정기 소환 (플레이어를 마주보도록 회전) */
     public ArmorStand spawn(Player player) {
-        Location loc = player.getLocation().clone();
+        Location loc = player.getLocation();
         loc.setYaw(loc.getYaw() + 180.0f);
         loc.setPitch(0.0f);
 

@@ -28,6 +28,7 @@ public class DpsTracker {
 
     private static final class Session {
         final Deque<Hit> hits = new ArrayDeque<>();
+        double sum = 0.0;
         double peak = 0.0;
         boolean armored = false;
     }
@@ -59,6 +60,7 @@ public class DpsTracker {
     public void record(Player attacker, double damage, boolean armored) {
         Session session = sessions.computeIfAbsent(attacker.getUniqueId(), key -> new Session());
         session.hits.addLast(new Hit(System.currentTimeMillis(), damage));
+        session.sum += damage;
         session.armored = armored;
     }
 
@@ -75,9 +77,9 @@ public class DpsTracker {
             Map.Entry<UUID, Session> entry = iterator.next();
             Session session = entry.getValue();
 
-            // 윈도우 밖으로 밀려난 기록 제거
+            // 윈도우 밖으로 밀려난 기록 제거 (합계는 증분 유지 — 매 틱 전체 순회 방지)
             while (!session.hits.isEmpty() && now - session.hits.peekFirst().time() > windowMillis) {
-                session.hits.pollFirst();
+                session.sum -= session.hits.pollFirst().damage();
             }
 
             Player player = Bukkit.getPlayer(entry.getKey());
@@ -94,11 +96,7 @@ public class DpsTracker {
                 continue;
             }
 
-            double sum = 0.0;
-            for (Hit hit : session.hits) {
-                sum += hit.damage();
-            }
-            double dps = sum / windowSeconds;
+            double dps = Math.max(0.0, session.sum) / windowSeconds;
             if (dps > session.peak) {
                 session.peak = dps;
             }

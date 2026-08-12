@@ -25,7 +25,6 @@ public final class DpsDummyPlugin extends JavaPlugin {
 
         // 콘피그
         saveDefaultConfig();
-        getConfig().options().copyDefaults(true);
 
         // 매니저
         dummyManager = new DummyManager(this);

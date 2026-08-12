@@ -9,6 +9,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * 갑옷 거치대는 바닐라에서 방어구 데미지 감소를 받지 않으므로,
@@ -37,8 +38,13 @@ public final class DamageCalculator {
                 continue;
             }
 
+            // 커스텀 방어구 대응: 아이템에 어트리뷰트가 직접 지정돼 있으면(바닐라 규칙대로)
+            // 기본값을 대체하고, 없으면 재질 기본 어트리뷰트를 사용한다.
+            ItemMeta meta = item.getItemMeta();
             Multimap<Attribute, AttributeModifier> modifiers =
-                    item.getType().getDefaultAttributeModifiers(slot);
+                    meta != null && meta.hasAttributeModifiers()
+                            ? meta.getAttributeModifiers(slot)
+                            : item.getType().getDefaultAttributeModifiers(slot);
             for (AttributeModifier modifier : modifiers.get(Attribute.ARMOR)) {
                 defense += modifier.getAmount();
             }

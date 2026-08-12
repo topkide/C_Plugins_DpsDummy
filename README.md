@@ -22,7 +22,15 @@ DPS 측정용 무적 갑옷 거치대 플러그인 (Paper 26.2)
 ```
 
 - JDK 25 필요 (없으면 foojay resolver가 자동 다운로드)
-- 산출물: `build/libs/DpsDummy-1.0.0.jar`
+- 산출물: `build/libs/DpsDummy-<버전>.jar`
+
+## 릴리스 (GitHub Actions)
+
+`v*` 태그를 푸시하면 GitHub Actions가 자동으로 빌드 후 jar를 GitHub Release에 업로드합니다.
+
+```bash
+git tag v1.0.1 && git push origin v1.0.1
+```
 
 ## 콘피그
 
